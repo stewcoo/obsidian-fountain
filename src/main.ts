@@ -19,10 +19,20 @@ import {
 import { FountainSideBarView, VIEW_TYPE_SIDEBAR } from "./sidebar_view";
 import { FountainView, VIEW_TYPE_FOUNTAIN } from "./view";
 
+interface FountainSettings {
+  spellCheck: boolean;
+}
+
+const DEFAULT_SETTINGS: Partial<FountainSettings> = {
+  spellCheck: false
+};
+
 export default class FountainPlugin extends Plugin {
+  settings: FountainSettings;
   async onload() {
+    await this.loadSettings();
     // Register our custom view and associate it with .fountain files
-    this.registerView(VIEW_TYPE_FOUNTAIN, (leaf) => new FountainView(leaf));
+    this.registerView(VIEW_TYPE_FOUNTAIN, (leaf) => new FountainView(leaf, this));
     this.registerExtensions(["fountain"], VIEW_TYPE_FOUNTAIN);
     this.registerView(
       VIEW_TYPE_SIDEBAR,
@@ -34,10 +44,18 @@ export default class FountainPlugin extends Plugin {
     });
     this.registerMarkdownPostProcessor(this.markdownPostProcessor);
   }
-
+  
   async onunload() {
     // Note that there is no unregisterView or unregisterExtensions methods
     // because obsidian already does this automatically when the plugin is unloaded.
+  }
+  
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
   }
 
   private markdownPostProcessor(

@@ -17,6 +17,7 @@ import {
   type WorkspaceLeaf,
   setIcon,
 } from "obsidian";
+import FountainPlugin from "./main";
 import { createCharacterCompletion } from "./character_completion";
 import {
   type FountainScript,
@@ -567,6 +568,7 @@ type FountainViewPersistedState = ReadonlyViewPersistedState & {
 
 export class FountainView extends TextFileView {
   state: ReadonlyViewState | EditorViewState;
+  plugin: FountainPlugin;
   private readonlyViewState: ReadonlyViewPersistedState;
   private toggleEditAction: HTMLElement;
   private showViewMenuAction: HTMLElement;
@@ -574,8 +576,10 @@ export class FountainView extends TextFileView {
   private cachedScript: FountainScript;
   private spellCheckEnabled = false;
 
-  constructor(leaf: WorkspaceLeaf) {
+  constructor(leaf: WorkspaceLeaf, plugin: FountainPlugin) {
     super(leaf);
+    this.plugin = plugin;
+    this.spellCheckEnabled = this.plugin.settings.spellCheck;
     this.readonlyViewState = {
       mode: ShowMode.Script,
     };
@@ -728,6 +732,12 @@ export class FountainView extends TextFileView {
 
   toggleSpellCheck(): boolean {
     this.spellCheckEnabled = !this.spellCheckEnabled;
+    // change setting
+    (async () => {
+      this.plugin.settings.spellCheck = this.spellCheckEnabled;
+      await this.plugin.saveSettings();
+    })();
+    
     if (this.state instanceof EditorViewState) {
       this.state.setSpellCheck(this.spellCheckEnabled);
     }
