@@ -203,7 +203,7 @@ export default class FountainPlugin extends Plugin {
             const pdfDoc = await generatePDF(fountainScript, options);
 
             // Get PDF bytes
-            const pdfBytes = await pdfDoc.save();
+            const pdfBytes: ArrayBuffer = await pdfDoc.save() as unknown as ArrayBuffer;
 
             // Delete existing file if it exists
             if (existingFile) {
